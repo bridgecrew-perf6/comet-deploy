@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+source .env
+export COMPOSE_PROJECT_NAME="comet"
+export API_BRANCH="${API_BRANCH:-main}"
+export APP_BRANCH="${APP_BRANCH:-main}"
+
+case "${1-}" in
+        up)
+            export VAULT_ADDR=https://vault.dide.ic.ac.uk:8200
+            mkdir -p ssl
+            vault read -field=certificate "secret/comet/ssl" >ssl/certificate.pem
+            vault read -field=key "secret/comet/ssl" >ssl/key.pem && chmod 600 ssl/key.pem
+            docker-compose up -d
+            ;;
+        pull)
+            docker-compose pull
+            docker-compose up -d
+            ;;
+        down)
+            docker-compose down
+            ;;
+        *)
+            echo $"Usage: $0 {up|pull|down}"
+            exit 1
+esac

@@ -1,0 +1,22 @@
+version: '3'
+services:
+  cometr:
+    image: mrcide/cometr:${API_BRANCH}
+    restart: unless-stopped
+  comet:
+    depends_on:
+    - cometr
+    image: mrcide/comet:${APP_BRANCH}
+    restart: unless-stopped
+  proxy:
+    command: app:8080 comet.dide.ic.ac.uk 80 443
+    image: reside/proxy-nginx:master
+    links:
+    - comet:app
+    ports:
+    - 80:80
+    - 443:443
+    restart: unless-stopped
+    volumes:
+    - ./ssl/certificate.pem:/run/proxy/certificate.pem:ro
+    - ./ssl/key.pem:/run/proxy/key.pem:ro
